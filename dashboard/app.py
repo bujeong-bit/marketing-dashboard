@@ -5,8 +5,6 @@ Marketing Dashboard
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-from pygwalker.api.streamlit import StreamlitRenderer
-
 from loader import (DATA_DIR, appsflyer_signature, channel_signature,
                     join_data, load_appsflyer, load_channel)
 
@@ -289,9 +287,33 @@ with tab4:
         use_container_width=True,
     )
 
-# ── Tab 5 : 고급 탐색 (pygwalker) ─────────────────────
+# ── Tab 5 : 고급 탐색 (Raw Data) ──────────────────────
 with tab5:
-    st.caption("컬럼을 X·Y축, 색깔, 필터에 끌어다 놓으면 차트가 만들어짐. 설정은 자동 저장.")
-    config_path = DATA_DIR / "dashboard" / "pyg_config.json"
-    renderer = StreamlitRenderer(df_all, spec=str(config_path), spec_io_mode="rw")
-    renderer.explorer()
+    st.caption("필터 조합으로 raw 데이터를 탐색. 컬럼 헤더 클릭으로 정렬 가능.")
+
+    # 컬럼 선택 필터
+    all_cols = df_all.columns.tolist()
+    default_cols = ["일", "채널", "캠페인", "그룹", "소재", "비용", "클릭", "노출", "구매", "구매매출", "ROAS"]
+    show_cols = st.multiselect("표시할 컬럼", all_cols,
+                               default=[c for c in default_cols if c in all_cols])
+
+    c1, c2 = st.columns(2)
+    with c1:
+        sort_col = st.selectbox("정렬 기준", show_cols if show_cols else all_cols, key="raw_sort")
+    with c2:
+        sort_asc = st.radio("정렬 방향", ["내림차순", "오름차순"], horizontal=True, key="raw_dir")
+
+    view_df = df[show_cols] if show_cols else df
+    view_df = view_df.sort_values(sort_col, ascending=(sort_asc == "오름차순"))
+
+    num_cols_present = [c for c in ["비용", "클릭", "노출", "구매", "구매매출", "CPC", "CPM",
+                                     "클릭_af", "구매_af"] if c in view_df.columns]
+    pct_cols_present = [c for c in ["CTR", "ROAS"] if c in view_df.columns]
+    fmt = {c: NUM_FMT for c in num_cols_present}
+    fmt.update({c: "{:.4f}" for c in pct_cols_present})
+
+    st.dataframe(
+        view_df.style.format(fmt),
+        use_container_width=True,
+        height=500,
+    )
