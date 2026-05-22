@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.env
+.venv/
+venv/
+
+# Data — 샘플 데이터만 올리려면 아래 주석 처리
+# data/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# pygwalker config (로컬 탐색 상태 — 선택)
+dashboard/pyg_config.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 작업 파일
+*.png
+*.html
+_raw_tmp/
+netlify-deploy/
+promo-video/
+scripts/
